@@ -35,13 +35,44 @@ function displayItems() {
                 );
             };
             console.table(values);
-            connection.end();
+            // delete this connection.end() and put it somewhere else once you're done building here
+            // connection.end();
+            shop();
         }
     );
 }
 
 // prompt user w 2 messages
-// first ask for ID of produc?product
+function shop() {
+    // first ask for ID of product they wanna buy
+    inquirer
+        .prompt([
+            {
+                type: "string",
+                name: "productID",
+                message: "Enter the ID# of the item you'd like to purchase!",
+                validate: function(productID){
+                    var isValid = !isNaN(parseFloat(productID));
+                    return isValid || "Please enter a valid Product ID#";
+                }
+            },
+            // second message asks how many units of the product they want
+            {
+                type: "number",
+                name: "quantity",
+                message: "How many of that can we get you?",
+                validate: function(productID){
+                    var isValid = !isNaN(parseFloat(productID));
+                    return isValid || "Please enter a valid, numeric quantity";
+                }
+            }
+        ])
+        .then(answers => {
+            // do something here with the answers
+        });
+
+}
+
 
 // after placing order, app checks if store has enough in stock
 
