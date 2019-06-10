@@ -21,7 +21,7 @@ connection.connect(function(err) {
 
 function displayItems() {
     connection.query(
-        "SELECT item_id, product_name, price FROM products",
+        "SELECT * FROM products",
         function (err, res) {
             if (err) throw err;
             // trying here to make a for loop to push the key:value pairs to the Items array that I will then use console.table to log items
@@ -30,21 +30,16 @@ function displayItems() {
                     {
                         ID: res[i].item_id,
                         Name: res[i].product_name,
-                        Price: "$" + res[i].price
+                        Price: "$" + res[i].price,
+                        Stock: res[i].stock_quantity
                     }
                 );
             };
             console.table(items);
-            // delete this connection.end() and put it somewhere else once you're done building here
-            // connection.end();
             shop(items);
-            // console.log(items[1].ID);
         }
     );
 }
-
-
-
 
 // prompt user w 2 messages
 function shop() {
@@ -52,21 +47,12 @@ function shop() {
     inquirer
         .prompt([
             {
-                type: "string",
+                type: "input",
                 name: "productID",
                 message: "Enter the ID# of the item you'd like to purchase!",
-                // I need this validate function to be DRY-er
                 validate: function (productID) {
                     for (var i = 0; i < items.length; i++) {
                         if (productID === items[i].ID.toString()) {
-                            connection.query(
-                                `SELECT * FROM products WHERE ?`,
-                                [items[i].product_id === productID],
-                                function(err, res) {
-                                    if (err) throw err;
-                                    console.log(items[i]);
-                                }
-                            )
                             return true;
                         }
                     }
@@ -74,47 +60,53 @@ function shop() {
             },
             // second message asks how many units of the product they want
             {
-                type: "string",
+                type: "number",
                 name: "quantity",
-                message: "How many of that can we get you?",
+                message: `How many of those can we get you?`,
                 validate: function(quantity) {
-                        var isValid = !isNaN(parseFloat(quantity));
-                        return isValid || "Please enter a valid, numeric quantity";
-                    }
+                    var isValid = !isNaN(quantity);
+                    return isValid || "Please enter a valid, numeric quantity";
+                }
             }
         ])
         .then(answers => {
-            // do something here with the answers
-            console.log(`You're looking for ${answers.productID}`);
-            console.log(`you're wanting a quantity of ${answers.quantity}`);
-
-            console.log(items[i]);
-            // if(answers.quantity <= item[0].Price) {
-            //     console.log(`IT'S IN STOCK BITCH`);
-            // } else {
-            //     console.log('Out of Stock');
-            // }
+            connection.query(
+                'SELECT * FROM products WHERE item_id = ?',
+                [answers.productID],
+                function(err, res) {
+                    if (err) throw err;
+                    customerItem = JSON.parse(JSON.stringify(res[0]));
+                    // console.log(customerItem);
+                    if(customerItem.stock_quantity >= answers.quantity) {
+                        // if there's enough in stock then finish the order
+                        var quantityDesired = answers.quantity;
+                        checkout(customerItem, quantityDesired);
+                    } else {
+                        console.log(`Insufficient quantity! Check out our other products in stock!`);
+                        setTimeout(
+                            function() {
+                                console.table(items);
+                                shop(items);
+                            }, 
+                            4000
+                        )
+                    };
+                }
+            )
         });
-
 }
 
-// function verifyInput(productID){
-//     var isValid = !isNaN(parseFloat(productID));
-//     return isValid || "Please enter a valid, numeric quantity";
-// }
-
-// saving this function here because it's the original one that works the best for both questions
-// 
-// function verifyInput(productID){
-//     var isValid = !isNaN(parseFloat(productID));
-//     return isValid || "Please enter a valid, numeric quantity";
-// }
-
-// after placing order, app checks if store has enough in stock
-
-// if not then log Insufficient quantity!
-// and then prevent the order from going through
-
-// if there's enough in stock then finish the order
-// (update SQL database to reflect remaining quantity)
-// show customer total cost of purchase
+function checkout(cart, amount) {
+    // (update SQL database to reflect remaining quantity)
+    connection.query(
+        `UPDATE products SET stock_quantity = stock_quantity - ? WHERE item_id = ?`,
+        [amount, cart.item_id],
+        function(err, res) {
+            if(err) throw err;
+        }
+    )
+    // show customer total cost of purchase
+    var totalPrice = cart.price * amount;
+    console.log(`Your total is $${totalPrice}. Thanks for choosing Bamazon!`);
+    connection.end();
+}
