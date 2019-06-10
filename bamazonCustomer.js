@@ -107,6 +107,7 @@ function checkout(cart, amount) {
     )
     // show customer total cost of purchase
     var totalPrice = cart.price * amount;
-    console.log(`Your total is $${totalPrice}. Thanks for choosing Bamazon!`);
+    var cleanPrice = Number.parseFloat(totalPrice).toFixed(2);
+    console.log(`Your total is $${cleanPrice}. Thanks for choosing Bamazon!`);
     connection.end();
 }
