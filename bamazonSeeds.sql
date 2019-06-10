@@ -23,4 +23,4 @@ INSERT INTO products (product_name, department_name, price, stock_quantity)
 VALUES ('Green Hat', 'Clothing', 14.99, 4), ('Leather Couch', 'Furniture', 1899.99, 6), ('Dog Bed', 'Pets', 83.99, 5), ('Crystal Paperweight', 'Furniture', 48.99, 10);
 
 INSERT INTO products (product_name, department_name, price, stock_quantity)
-VALUES ('Black Raincoat', 'Clothing', 179.99, 12), ('Blender', 'Kitchen', 49.99, 30), ('Sunglasses', 'Clothing', 21.99, 18);
+VALUES ('Yellow Raincoat', 'Clothing', 179.99, 12), ('Blender', 'Kitchen', 49.99, 30), ('Sunglasses', 'Clothing', 21.99, 18);
